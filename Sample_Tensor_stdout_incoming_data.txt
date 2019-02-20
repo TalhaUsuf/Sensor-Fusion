@@ -1,0 +1,32 @@
+CAMERA output dimensions 1280 x 720 (origin at top-left corner)
+
+2 bounding boxes detected
+detected obj 0  class #0 (person)  confidence=0.588379
+bounding box 0  (258.828125, -24.521484)  (455.078125, 370.283203)  w=196.250000  h=394.804688
+detected obj 1  class #0 (person)  confidence=1.773438
+bounding box 1  (554.296875, -40.429688)  (815.273438, 501.240234)  w=260.976562  h=541.669922
+Received camera request: b'0259-025045503700554-04008150501\x00'
+
+2 bounding boxes detected
+detected obj 0  class #0 (person)  confidence=0.844727
+bounding box 0  (263.281250, -19.599609)  (450.312500, 343.740234)  w=187.031250  h=363.339844
+detected obj 1  class #0 (person)  confidence=0.874512
+bounding box 1  (552.734375, -46.933594)  (816.250000, 503.085938)  w=263.515625  h=550.019531
+Received camera request: b'0263-020045003440553-04708160503\x00'
+
+1 bounding boxes detected
+detected obj 0  class #0 (person)  confidence=0.816895
+bounding box 0  (550.312500, -48.867188)  (814.687500, 504.667969)  w=264.375000  h=553.535156
+Received camera request: b'0550-04908150505\x00'
+
+1 bounding boxes detected
+detected obj 0  class #0 (person)  confidence=1.713867
+bounding box 0  (559.609375, -48.515625)  (815.000000, 430.488281)  w=255.390625  h=479.003906
+Received camera request: b'0560-04908150430\x00'
+
+0 bounding boxes detected
+Received camera request: b'\x00'
+
+0 bounding boxes detected
+Received camera request: b'\x00'
+
