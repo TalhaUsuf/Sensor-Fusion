@@ -14,6 +14,8 @@ detections_c = []
 detections_l = []
 
 cap = cv2.VideoCapture(4)
+cap.set(3,1280);
+cap.set(4,720);
 
 context = zmq.Context()
 
