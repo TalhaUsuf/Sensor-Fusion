@@ -5,6 +5,7 @@ import _thread
 import datetime
 from threading import Lock
 
+import _pickle as pickle
 import numpy as np
 import math
 import mkmath as mk
@@ -25,10 +26,10 @@ lidar_data_mutex = Lock()
 
 turn = True
 
-#Radar Configuration
-#RT=np.matrix('1 0 0 0;0 0 1 0;0 1 0 0;0 0 0 1') #based on corrected axes #discounted
-#KEEP FOR LIDAR
-#RT=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
+#Rotation and Translation Matrices
+
+#Lidar
+RT_lidar=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
 #Radar 
 RT=np.matrix('1 0 0 0;0 0 -1 -0.06;0 1 0 -0.05')
 
@@ -42,7 +43,8 @@ Sy=1
 
 #pixel buffer for radar
 radar_pixel=[]
-
+#pixel buffer for lidar
+lidar_pixel=[]
 
 
 def thread_camera():
@@ -128,10 +130,44 @@ def thread_radar():
 		index=0
 		count=0
 		
+"""LIDAR"""
+		
 def thread_lidar():
-		message = socket_lidar.recv()
-		socket_lidar.send(b"200")
-		lidar_data.clear()
+	
+	message = socket_lidar.recv()
+	socket_lidar.send(b"200")
+	lidar_data.clear()
+	payload=pickle.loads(message)
+	
+	for cursor in payload:
+
+		cartesian= mk.convertToCartesian(cursor[2]/1000,cursor[1])
+		x= (cartesian["x"])
+		y= (cartesian["y"])
+       
+		if(cursor[2]<12000 and((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<61)))):
+
+			uv=mk.LidToPixels(x,y,0,RT_lidar,fx,fy,Sx,Sy,Cx,Cy)
+
+			#SCALING THE CIRCLES
+			distance= cursor[2]/1000
+			#CIRCLE WIDTH
+			circle_radius=5
+			if(distance>=12):
+				circle_radius=5
+			elif(distance<0.5):
+				circle_radius=100
+			else:
+				circle_radius= int(100-8.3*distance)
+
+			uv.append(circle_radius)
+			lidar_data.append(uv)
+				
+#end lidar thread
+		
+		
+		
+		
 		
 	
 
@@ -149,6 +185,10 @@ context_radar = zmq.Context()
 socket_radar = context_radar.socket(zmq.REP)
 socket_radar.bind("tcp://*:" + PORT_RADAR)
 
+#create lidar socket
+context_lidar = zmq.Context()
+socket_lidar = context_lidar.socket(zmq.REP)
+socket_lidar.bind("tcp://*:"+PORT_LIDAR)
 
 
 print("Initializing Camera Feed...")
@@ -157,6 +197,9 @@ print("Configuring Radar to start producing data...")
 pid_radar_config = subprocess.Popen(["/home/nvidia/Documents/radar_cfgs/reader_writer"])
 print("Starting Radar incoming data parser ")
 pid_radar_data = subprocess.Popen(["/home/nvidia/Documents/radar_cfgs/dataport_reader_zmq"])
+print("Starting Lidar Executable")
+pid_lidar_data= subprocess.Popen(["python3","/home/nvidia/Documents/ADAS/lidar.py"])
+
 print("Starting GUI...")
 pid_GUI = subprocess.Popen(["python3", "/home/nvidia/Documents/ADAS/GUI.py"])
 
@@ -206,13 +249,22 @@ while 1:
 			#print(x, y, z)
 			#fusion algorithm
 		
-		#radar_buffer = radar_buffer[:-1]
 		
-			
+		#radar_buffer = radar_buffer[:-1]
+		'''LIDAR MUJAHEED'''
+		lidar_buffer=""
+		for u, v, w, x in lidar_data:
+			if (u <=1280 and u>=0 and v<=720 and v>=0):
+				lidar_buffer += "{0:04d}{1:04d}{1:04d}".format(u, v, x)
+		
+		
+		
+		
+		'''LIDAR MUJAHEED END'''
 		#print("==========")
 		
 		#crafting a single message to send to GUI, using '/' delimiters.
-		fusion_message = "{}/{}/{}".format(camera_buffer, radar_buffer, "c")
+		fusion_message = "{}/{}/{}".format(camera_buffer, radar_buffer, lidar_buffer)
 		socket_gui.send_string(fusion_message)
 		gui_message = socket_gui.recv()
 		#print("Received reply")

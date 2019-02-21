@@ -10,7 +10,7 @@ pxpy = []
 rectangles = []
 
 
-cap = cv2.VideoCapture(4)
+cap = cv2.VideoCapture(1)
 
 context = zmq.Context()
 
@@ -94,6 +94,15 @@ while(True):
 		py = int(radar_data[4:8])
 		radar_data = radar_data[8:]
 		modf_frame = cv2.rectangle(modf_frame, (px, py), (px+10, py+10), (0,0,255), 2)
+	
+	#lidar	
+	while len(lidar_data)>7:
+		px = int(lidar_data[0:4])
+		py = int(lidar_data[4:8])
+		circle_radius=int(lidar_data[8:12])
+		lidar_data = lidar_data[12:]
+		modf_frame=cv2.circle(modf_frame,(px, py),circle_radius,(0, 191, 255),1)
+
 	
 	'''
 	radar_data_array = radar_data.split('|')
