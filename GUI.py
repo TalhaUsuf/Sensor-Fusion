@@ -5,9 +5,7 @@ import _thread
 from threading import Lock
 
 mutex = Lock()
-new_camera = False
-new_radar = False
-new_lidar = False
+new_data = True
 
 detections_r = []
 detections_c = []
@@ -25,9 +23,7 @@ socket.bind("tcp://*:5558")
 print("Entering GUI Loop...")
 
 def comms_thread():
-	global new_camera, new_radar, new_lidar, detections_c, detections_l, detections_r, mutex
-
-
+	global new_data, detections_c, detections_l, detections_r, mutex
 	while True:
 		message = socket.recv_string()
 		socket.send(b"world")
@@ -52,7 +48,7 @@ def comms_thread():
 			#camera_certainty = float(camera_data[16:21])
 			camera_data = camera_data[21:]
 			detections_c.append([px1, py1, px2, py2])
-			new_camera = True
+			new_data = True
 			
 		#breakdown the aggregated camera_data into individual rectangles, then draw rectangles on the frame. 
 		while len(radar_data)>7:
@@ -60,7 +56,7 @@ def comms_thread():
 			py = int(radar_data[4:8])
 			radar_data = radar_data[8:]
 			detections_c.append([px, py])
-			new_radar = True
+			new_data = True
 			
 		#lidar	
 		while len(lidar_data)>7:
@@ -69,7 +65,7 @@ def comms_thread():
 			circle_radius=int(lidar_data[8:12])
 			lidar_data = lidar_data[12:]
 			detections_l.append([px, py, circle_radius])
-			new_lidar = True
+			new_data = True
 			
 		mutex.release()
 		
@@ -84,21 +80,16 @@ while(True):
 	
 	mutex.acquire()
 
-	if(new_camera):
+	if(new_data):
 		for i in detections_c:
 			modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
-		new_camera = False
-	
-	if(new_radar):
 		for i in detections_r:
 			modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[0]+10, i[0]+10), (0,0,255), 2)
-		new_radar = False
-
-	if(new_lidar):
 		for i in detections_l:
 			modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[2],(0, 191, 255),1)
-		new_lidar = False
-		
+		new_data = False
+	
+
 	mutex.release()
 
 	cv2.imshow('frame',modf_frame)
