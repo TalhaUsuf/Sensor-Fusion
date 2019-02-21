@@ -13,7 +13,7 @@ detections_r = []
 detections_c = []
 detections_l = []
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(4)
 
 context = zmq.Context()
 
