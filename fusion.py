@@ -56,8 +56,10 @@ def thread_camera():
 		
 		#  Wait for next request from client
 		message_camera = socket_camera.recv()
+		
 		#parse camera data
 		if (~turn):
+			#print("detectnetmessage received...")
 			camera_data_mutex.acquire()
 			camera_data.clear()
 			while len(message_camera)>19:
@@ -65,7 +67,7 @@ def thread_camera():
 				py1 = int(message_camera[4:8])
 				px2 = int(message_camera[8:12])
 				py2 = int(message_camera[12:16])
-				print("Camera: ",px1," ",py1," ",px2," ",py2)
+				#print("Fusion: ",px1," ",py1," ",px2," ",py2)
 				camera_certainty = float(message_camera[16:20])/10000
 				camera_data.append((px1, py1, px2, py2, camera_certainty))
 				message_camera = message_camera[20:]
@@ -102,7 +104,7 @@ def thread_radar():
 			x = int(message[index:index+4+1])/100
 			y = int(message[index+5:index+9+1])/100
 			z = int(message[index+10:index+14+1])/100
-			print("Radar xyz=  : ",x," ",y," ",z)
+			#print("Radar xyz=  : ",x," ",y," ",z)
 			#calculating radius for scaling circle radius
 			r = math.sqrt(math.pow(x,2)+math.pow(y,2)+pow(z,2))
 			index = index+15
@@ -249,7 +251,6 @@ while 1:
 			camera_buffer += "{0:04d}{1:04d}{2:04d}{3:04d}{4:5.3f}".format(x1, y1, x2, y2, cert)
 			#cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3) 
 			#print(x1, y1, x2, y2, e)
-		camera_buffer = camera_buffer[:-1]
 		
 		#print("Radar Data")
 		radar_buffer = ""
@@ -281,6 +282,7 @@ while 1:
 		#print("==========")
 		
 		#crafting a single message to send to GUI, using '/' delimiters.
+		#print("sending to gui...", camera_buffer)
 		fusion_message = "{}/{}/{}".format(camera_buffer, radar_buffer, lidar_buffer)
 		socket_gui.send_string(fusion_message)
 		gui_message = socket_gui.recv()

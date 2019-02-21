@@ -39,6 +39,7 @@ def comms_thread():
 		
 		data = message.split('/')
 		camera_data = data[0]
+		#print("gui receive ", camera_data)
 		radar_data = data[1]
 		lidar_data = data[2]
 
@@ -81,7 +82,8 @@ while(True):
 	modf_frame = frame
 	
 	mutex.acquire()
-
+	
+	#print("gui drawing", detections_c)
 	for i in detections_c:
 		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
 		
