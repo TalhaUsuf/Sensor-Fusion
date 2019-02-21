@@ -31,7 +31,7 @@ turn = True
 #Lidar
 RT_lidar=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
 #Radar 
-RT=np.matrix('1 0 0 0;0 0 -1 -0.06;0 1 0 -0.05')
+RT=np.matrix('1 0 0 0.05;0 0 -1 -0.06;0 1 0 -0.05')
 
 fy=1040
 fx=720
@@ -133,35 +133,38 @@ def thread_radar():
 """LIDAR"""
 		
 def thread_lidar():
+	while(True): 
 	
-	message = socket_lidar.recv()
-	socket_lidar.send(b"200")
-	lidar_data.clear()
-	payload=pickle.loads(message)
-	
-	for cursor in payload:
+		message = socket_lidar.recv()
+		#print("Received lidar scan")
+		socket_lidar.send(b"200")
+		lidar_data.clear()
+		payload=pickle.loads(message)
+		#print("Lidar Msg:",payload)
+		
+		for cursor in payload:
 
-		cartesian= mk.convertToCartesian(cursor[2]/1000,cursor[1])
-		x= (cartesian["x"])
-		y= (cartesian["y"])
-       
-		if(cursor[2]<12000 and((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<61)))):
+			cartesian= mk.convertToCartesian(cursor[2]/1000,cursor[1])
+			x= (cartesian["x"])
+			y= (cartesian["y"])
+		   
+			if(cursor[2]<12000 and((cursor[1]>329 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<31)))):
 
-			uv=mk.LidToPixels(x,y,0,RT_lidar,fx,fy,Sx,Sy,Cx,Cy)
+				uv=mk.LidToPixels(x,y,0,RT_lidar,fx,fy,Sx,Sy,cx,cy)
 
-			#SCALING THE CIRCLES
-			distance= cursor[2]/1000
-			#CIRCLE WIDTH
-			circle_radius=5
-			if(distance>=12):
+				#SCALING THE CIRCLES
+				distance= cursor[2]/1000
+				#CIRCLE WIDTH
 				circle_radius=5
-			elif(distance<0.5):
-				circle_radius=100
-			else:
-				circle_radius= int(100-8.3*distance)
+				if(distance>=12):
+					circle_radius=5
+				elif(distance<0.5):
+					circle_radius=100
+				else:
+					circle_radius= int(100-8.3*distance)
 
-			uv.append(circle_radius)
-			lidar_data.append(uv)
+				uv.append(circle_radius)
+				lidar_data.append(uv)
 				
 #end lidar thread
 		
@@ -197,8 +200,8 @@ print("Configuring Radar to start producing data...")
 pid_radar_config = subprocess.Popen(["/home/nvidia/Documents/radar_cfgs/reader_writer"])
 print("Starting Radar incoming data parser ")
 pid_radar_data = subprocess.Popen(["/home/nvidia/Documents/radar_cfgs/dataport_reader_zmq"])
-print("Starting Lidar Executable")
-pid_lidar_data= subprocess.Popen(["python3","/home/nvidia/Documents/ADAS/lidar.py"])
+#print("Starting Lidar Executable")
+#pid_lidar_data= subprocess.Popen(["python3","/home/nvidia/Documents/ADAS/lidar.py"])
 
 print("Starting GUI...")
 pid_GUI = subprocess.Popen(["python3", "/home/nvidia/Documents/ADAS/GUI.py"])
@@ -216,7 +219,7 @@ socket_gui.connect("tcp://localhost:" + PORT_GUI)
 try: 
 	_thread.start_new_thread(thread_camera, ())
 	_thread.start_new_thread(thread_radar, ())
-	#_thread.start_new_thread(thread_lidar, ())
+	_thread.start_new_thread(thread_lidar, ())
 except:
 	print("Error: Unable to start thread")
 	
@@ -255,7 +258,7 @@ while 1:
 		lidar_buffer=""
 		for u, v, w, x in lidar_data:
 			if (u <=1280 and u>=0 and v<=720 and v>=0):
-				lidar_buffer += "{0:04d}{1:04d}{1:04d}".format(u, v, x)
+				lidar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, x)
 		
 		
 		
