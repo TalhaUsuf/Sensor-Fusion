@@ -120,7 +120,7 @@ def thread_radar():
 				rad=5+15/9*r"""
 				
 			#SCALING THE CIRCLES
-			distance= r/1000
+			distance= r
 			#CIRCLE WIDTH
 			circle_radius=5
 			if(distance>=12):
