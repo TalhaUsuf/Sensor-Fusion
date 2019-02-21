@@ -134,21 +134,19 @@ def convertWorldCordsToPixelsRadar(U,V,W,fx,fy,cx,cy,RT,Sx,Sy):
 """Lidar""" 
 
 def convertWithoutRT(U,fx,fy,cx,cy,Sx,Sy):
-    #print("\n convert To convertWithoutRT\n")
-    UVW= np.array(U)
-    #print("\nUVW",UVW)
-    intrinsic= np.array([[fx/Sx,0,cx],[0,fy/Sy,cy],[0,0,1]])
-    #print("\nIntrinsic",intrinsic)
-    
-    #m= (intrinsic.dot(RT.dot(UVW)))
-    #print("\nRotationMAtrix",RT)
+   
+	UVW= np.array(U)
+	intrinsic= np.array([[fx/Sx,0,cx],[0,fy/Sy,cy],[0,0,1]])
+	m= intrinsic.dot(UVW)
+	if(m[2]==0):
+		m[2]=1
+		
 
-    m= intrinsic.dot(UVW)
-    m[0]=m[0]/m[2]
-    m[1]=m[1]/m[2]
-    m[2]=1
+	m[0]=m[0]/m[2]
+	m[1]=m[1]/m[2]
+	m[2]=1
     #print("PIXELS=",m)
-    return m
+	return m
 
 def convertToCamCoords(U,V,W,RT):
     #print("\n convert To CAM\n")

@@ -65,6 +65,7 @@ def thread_camera():
 				py1 = int(message_camera[4:8])
 				px2 = int(message_camera[8:12])
 				py2 = int(message_camera[12:16])
+				print("Camera: ",px1," ",py1," ",px2," ",py2)
 				camera_certainty = float(message_camera[16:20])/10000
 				camera_data.append((px1, py1, px2, py2, camera_certainty))
 				message_camera = message_camera[20:]
@@ -101,20 +102,31 @@ def thread_radar():
 			x = int(message[index:index+4+1])/100
 			y = int(message[index+5:index+9+1])/100
 			z = int(message[index+10:index+14+1])/100
-			
+			print("Radar xyz=  : ",x," ",y," ",z)
 			#calculating radius for scaling circle radius
 			r = math.sqrt(math.pow(x,2)+math.pow(y,2)+pow(z,2))
 			index = index+15
 			count = count+1
 			
 			#radius
-			rad=10
+			"""rad=10
 			if(r<1):
 				rad=20
 			elif(r>10):
 				rad=5
 			else:
-				rad=5+15/9*r
+				rad=5+15/9*r"""
+				
+			#SCALING THE CIRCLES
+			distance= r/1000
+			#CIRCLE WIDTH
+			circle_radius=5
+			if(distance>=12):
+				circle_radius=5
+			elif(distance<0.5):
+				circle_radius=100
+			else:
+				circle_radius= int(100-8.3*distance)
 			
 			#pixel conversion===========================
 			
@@ -123,6 +135,8 @@ def thread_radar():
 			
 			#new method
 			uv=mk.LidToPixels(x,y,z,RT,fx,fy,Sx,Sy,cx,cy)
+			uv.append(circle_radius)
+			
 			
 			radar_data.append(uv)
 			
@@ -241,13 +255,13 @@ while 1:
 		radar_buffer = ""
 		#FIX THIS: radar_data is not in x,y,z
 		#for x, y, z in radar_data:
-		for u, v, w in radar_data:
+		for u, v, w, x in radar_data:
 			#radar_buffer += "{0:03d}{1:03d}{2:03d}".format(x, y, z)
 			#radar_buffer += "{0:d}%{1:d}|".format(u, v)
 			#print(u)
 			#print(v)
 			if (u <=1280 and u>=0 and v<=720 and v>=0):
-				radar_buffer += "{0:04d}{1:04d}".format(u, v)
+				radar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, x)
 			#cv2.circle(frame, (x, y), 40, (0, 0, 255), 3)
 			#print(x, y, z)
 			#fusion algorithm
