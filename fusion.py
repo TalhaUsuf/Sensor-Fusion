@@ -33,8 +33,8 @@ RT_lidar=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
 #Radar 
 RT=np.matrix('1 0 0 0.05;0 0 -1 -0.06;0 1 0 -0.05')
 
-fy=1040
-fx=720
+fy=1084
+fx=1089
 cx=640
 cy=360
 Sx=16/9
@@ -200,8 +200,8 @@ print("Configuring Radar to start producing data...")
 pid_radar_config = subprocess.Popen(["/home/nvidia/Documents/radar_cfgs/reader_writer"])
 print("Starting Radar incoming data parser ")
 pid_radar_data = subprocess.Popen(["/home/nvidia/Documents/radar_cfgs/dataport_reader_zmq"])
-#print("Starting Lidar Executable")
-#pid_lidar_data= subprocess.Popen(["python3","/home/nvidia/Documents/ADAS/lidar.py"])
+print("Starting Lidar Executable")
+pid_lidar_data= subprocess.Popen(["python3","/home/nvidia/Documents/ADAS/lidar.py"])
 
 print("Starting GUI...")
 pid_GUI = subprocess.Popen(["python3", "/home/nvidia/Documents/ADAS/GUI.py"])
