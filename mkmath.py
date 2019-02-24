@@ -17,6 +17,8 @@ def mkmeans(scan):
 		for cursor in scan:
 				
 			#print(i)
+			resolution_r=2
+			resolution_theta=3
 
 			if(i==(length-1)):
 					running_r.append(scan[i][1])
@@ -30,13 +32,13 @@ def mkmeans(scan):
 					running_theta.clear()
 					break;
 					   
-			elif( (abs(cursor[1]-scan[i+1][1])<2)):
+			elif( (abs(cursor[1]-scan[i+1][1])<resolution_r) and (abs(cursor[2]-scan[i+1][2])<resolution_theta)):
 					
 					running_r.append(cursor[1])
 					#print("running R",running_r)
 					running_theta.append(cursor[2])
 					#print("running theta",running_theta)
-			elif(abs(cursor[1]-scan[i+1][1])>2):
+			elif((abs(cursor[1]-scan[i+1][1])>resolution_r) or (abs(cursor[2]-scan[i+1][2])>resolution_theta)):
 					running_r.append(scan[i][1])
 					running_theta.append(scan[i][2])
 					#print("LARGER")
