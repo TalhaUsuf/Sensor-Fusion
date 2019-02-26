@@ -4,6 +4,10 @@ import zmq
 import _thread
 from threading import Lock
 
+#GUI Calibration Parameters
+x_shift_slope = 0.1
+x_shift_base = -50
+
 mutex = Lock()
 
 detections_r = []
@@ -23,9 +27,20 @@ socket.bind("tcp://*:5558")
 
 print("Entering GUI Loop...")
 
+#function for 
+def x_shift(x, height=1):
+	return x + (x_shift_slope*x + x_shift_base)*height
+
+def x_shift_v2(x, height=1):
+	if (500<x<800):
+		return x
+	elif (x=<500):
+		return x-50
+	elif (x>=800):
+		return x+50
+
 def comms_thread():
 	global detections_c, detections_l, detections_r, mutex
-
 
 	while True:
 		message = socket.recv_string()
@@ -85,7 +100,7 @@ while(True):
 	
 	#print("gui drawing", detections_c)
 	for i in detections_c:
-		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
+		modf_frame = cv2.rectangle(modf_frame, (x_shift(i[0]), i[1]), (x_shift(i[2]), i[3]), (0,255,0), 2)
 		
 	for i in detections_r:
 		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[2],(204, 0, 204),2)
