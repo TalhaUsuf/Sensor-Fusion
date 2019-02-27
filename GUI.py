@@ -11,7 +11,7 @@ detections_r = []
 detections_c = []
 detections_l = []
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(4)
 cap.set(3,1280);
 cap.set(4,720);
 
@@ -115,7 +115,7 @@ while(True):
 		
 	for i in detections_r:
 		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
-		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 3,(0, 255, 255),2,cv2.LINE_AA)
+		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),2,cv2.LINE_AA)
 	
 	for i in detections_l:
 		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(0, 191, 255),3)

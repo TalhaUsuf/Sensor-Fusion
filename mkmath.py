@@ -13,10 +13,23 @@ def mkmeans(scan):
 	running_quality=42
 	final=[]
 	got_new=False
+	res_theta=10
+	res_r=2
+	
 	try:
 		for cursor in scan:
 				
 			#print(i)
+			
+			cart= convertToCartesian(cursor[2],cursor[1])
+			next_cart= cart
+			if(i!=length):
+				print("I am here",i)
+				next_cart=convertToCartesian(scan[i+1][1],scan[i+1][2])
+				
+			
+			#print("cart",cart)
+			
 
 			if(i==(length-1)):
 					running_r.append(scan[i][1])
@@ -30,13 +43,13 @@ def mkmeans(scan):
 					running_theta.clear()
 					break;
 					   
-			elif( (abs(cursor[1]-scan[i+1][1])<2)):
+			elif( (abs(cart['x']-next_cart[i+1][1])<res_r) and (abs(cursor[2]-scan[i+1][2])<res_theta) ):
 					
 					running_r.append(cursor[1])
 					#print("running R",running_r)
 					running_theta.append(cursor[2])
 					#print("running theta",running_theta)
-			elif(abs(cursor[1]-scan[i+1][1])>2):
+			elif((abs(cart['x']-next_cart[i+1][1])>res_r)):
 					running_r.append(scan[i][1])
 					running_theta.append(scan[i][2])
 					#print("LARGER")
@@ -51,7 +64,8 @@ def mkmeans(scan):
 			i=i+1
 						
 			
-	except:
+	except(e):
+		print(e)
 		print("Stupid",i)
 
 	return final
