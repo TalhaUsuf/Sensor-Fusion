@@ -11,7 +11,7 @@ detections_r = []
 detections_c = []
 detections_l = []
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(4)
 cap.set(3,1280);
 cap.set(4,720);
 
