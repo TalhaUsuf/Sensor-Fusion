@@ -111,6 +111,95 @@ def LidToPixels(X,Y,Z,RT,fx,fy,Sx,Sy,Cx,Cy):
     pixels=convertWithoutRT(cam_cords,fx,fy,Cx,Cy,Sx,Sy)
     return [int(pixels[0]), int(pixels[1]), int(pixels[2])]
 
+def mkmeans2(scan):
+	length=len(scan)
+	i=0
+	running_r=[]
+	temp=[]
+	running_theta=[]
+	running_quality=42
+	final=[]
+	got_new=False
+	res_x=100
+	res_y=500
+	#print("Scan:",scan)
+	
+	try:
+		for cursor in scan:
+				
+			#print(i)
+			
+			cart= convertToCartesian(cursor[2],cursor[1])
+			next_cart= cart
+			if(i!=length-1):
+				next_cart=convertToCartesian(scan[i+1][2],scan[i+1][1])	   
+				if( (abs(cart['x']-next_cart['x'])<res_x) and (abs(cart['y']-next_cart['y'])<res_y) ):
+						
+						#print("Prefinal@", i,final)
+						running_r.append(cursor[2])
+						running_theta.append(cursor[1])
+					
+			
+							
+						
+				elif((abs(cart['x']-next_cart['x'])>res_x) or (abs(cart['y']-next_cart['y'])>res_y)):
+						running_r.append(cursor[2])
+						running_theta.append(cursor[1])
+						
+						#print("running_r", running_r)
+						#print("running_theta",running_theta)
+						temp.clear()
+						temp.append(15)
+						temp.append(average(running_theta))
+						temp.append(average(running_r))
+						
+						#print("temp",temp)
+						#rint("Pre Final",final)
+						final.append(temp.copy())
+						running_r.clear()
+						running_theta.clear()
+			else:
+				running_r.append(cursor[2])
+				running_theta.append(cursor[1])
+				
+				#print("running_r", running_r)
+				#print("running_theta",running_theta)
+				temp.clear()
+				temp.append(15)
+				temp.append(average(running_theta))
+				temp.append(average(running_r))
+				
+				#print("temp",temp)
+				#rint("Pre Final",final)
+				final.append(temp.copy())
+				running_r.clear()
+				running_theta.clear()
+				
+						
+						#print(i,"-","final",final)
+			
+				
+			
+				
+				
+				
+			i=i+1
+						
+			
+	except(e):
+		print(e)
+		print("Stupid",i)
+		
+	#print("\nfinal",final)
+
+	return final
+	
+
+def average(arr):
+
+	return sum(arr)/len(arr)
+  
+
 
     
 """

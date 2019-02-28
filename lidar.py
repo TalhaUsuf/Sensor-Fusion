@@ -98,7 +98,7 @@ while(True):
 			n_clusters=10
 			
 			for cursor in scan:
-				if(((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<60)))):
+				if((cursor[2]<8000) and((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<60)))):
 					scan_FOV.append(cursor)
 					
 					#print(scan_FOV)
@@ -119,7 +119,7 @@ while(True):
 					#print("Clustered Scan: ",min_scan)
 					socket.send(pickle.dumps(min_scan))
 				else:
-					final_scan=mk.mkmeans(scan_FOV)
+					final_scan=mk.mkmeans2(scan_FOV)
 					#print(scan_FOV)
 					#print("MKmeans",final_scan)
 					socket.send(pickle.dumps(final_scan))
