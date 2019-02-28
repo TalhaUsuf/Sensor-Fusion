@@ -4,6 +4,58 @@
 import math
 import numpy as np
 
+def mkmeans(scan):
+
+	length=len(scan)
+	i=0
+	running_r=[]
+	running_theta=[]
+	running_quality=42
+	final=[]
+	got_new=False
+	try:
+		for cursor in scan:
+				
+			#print(i)
+
+			if(i==(length-1)):
+					running_r.append(scan[i][1])
+					running_theta.append(scan[i][2])
+					temp=[]
+					temp.append(15)
+					temp.append( sum(running_r)/len(running_r))
+					temp.append( sum(running_theta)/len(running_theta))
+					final.append(temp)
+					running_r.clear()
+					running_theta.clear()
+					break;
+					   
+			elif( (abs(cursor[1]-scan[i+1][1])<2)):
+					
+					running_r.append(cursor[1])
+					#print("running R",running_r)
+					running_theta.append(cursor[2])
+					#print("running theta",running_theta)
+			elif(abs(cursor[1]-scan[i+1][1])>2):
+					running_r.append(scan[i][1])
+					running_theta.append(scan[i][2])
+					#print("LARGER")
+					got_new=True
+					temp=[]
+					temp.append(15)
+					temp.append( sum(running_r)/len(running_r))
+					temp.append( sum(running_theta)/len(running_theta))
+					final.append(temp)
+					running_r.clear()
+					running_theta.clear()
+			i=i+1
+						
+			
+	except:
+		print("Stupid",i)
+
+	return final
+
 #functions
 def convertToCartesian(radius,angle):
     #expecting angle in degrees
@@ -30,108 +82,8 @@ def convertToCartesanRadians(radius,radians):
     
 
 
-def computeOpticalCentre(FOV,f):
-    #expecting angle in degrees
-    return f*math.tan(FOV/2)
-
-
-"""def convertWorldCordsToPixels(U,V,W,f,FOVx,FOVy,RT,Sx,Sy):
-    #expecting RT  to be 4 x 4  numpy matrix
-    
-    UVW= np.array([[U],[V],[W],[1]]); #real world coords
-    per_proj= np.array([[f,0,0,0],[0,f,0,0],[0,0,1,0]]) #pespective projection
-    Ox= computeOpticalCentre(FOVx,f)
-    Oy= computeOpticalCentre(FOVy,f)
-    #Ox=800
-    #Oy=600
-    Maff= np.array([[1/Sx,0,Ox],[0,1/Sy,Oy],[0,0,1]])
-
-    #incomplete
-
-    print("RT X UVW")
-    print(RT.dot(UVW))
-    m= Maff.dot(per_proj)
-    print("Maff X per_proj")
-    print(m)
-    m= m.dot(RT)
-    print("Maff X per_proj X RT")
-    print(m)
-    m= m.dot(UVW)
-    return m"""
-
-#different math equation than the previous one
-def convertWorldCordsToPixels(U,V,W,f,FOVx,FOVy,RT,Sx,Sy):
-    #expecting RT  to be 4 x 4  numpy matrix
-    
-    UVW= np.array([[U],[V],[W],[1]]); #real world coords
-    
-    #Ox= computeOpticalCentre(FOVx,f)
-    #Oy= computeOpticalCentre(FOVy,f)
-    Ox=981
-    Oy=330
-    per_proj= np.array([[f/Sx,0,Ox,0],[0,f/Sy,Oy,0],[0,0,1,0]]) #pespective projection
-    
-
-    #incomplete
-    #print("RT X UVW")
-    m= RT.dot(UVW)
-    #print(m)
-    m= per_proj.dot(m)
-    #print("Per_proj X m")
-    #print(m)
-    return m
-
-
-def convertWorldCordsToPixelsCV(U,V,W,fx,fy,cx,cy,RT,Sx,Sy):
-    UVW= np.array([[U],[V],[W],[1]]);
-    intrinsic= np.array([[fx,0,cx],[0,fy,cy],[0,0,1]])
-    identity4Z= np.matrix('1 0 0 0;0 1 0 0;0 0 1 0')
-    s= np.array([[1/Sx,0,0],[0,1/Sy,0],[0,0,1]])
-    m= RT.dot(UVW)
-    #print(m)
-    z= intrinsic.dot(identity4Z)
-    m= z.dot(m)
-    #print(m)
-    m=s.dot(m)
-    #print(m)
-    return m
-
-def convertWorldCordsToPixelsDZ(U,V,W,fx,fy,cx,cy,RT,Sx,Sy):
-    UVW= np.array([[U/W],[V/W],[W/W],[1]]);
-    intrinsic= np.array([[fx,0,cx],[0,fy,cy],[0,0,1]])
-    identity4Z= np.matrix('1 0 0 0;0 1 0 0;0 0 1 0')
-    s= np.array([[1/Sx,0,0],[0,1/Sy,0],[0,0,1]])
-    m= RT.dot(UVW)
-    #print(m)
-    z= intrinsic.dot(identity4Z)
-    m= z.dot(m)
-    #print(m)
-    m=s.dot(m)
-    #print(m)
-    return m
-
-def convertWorldCordsToPixelsRadar(U,V,W,fx,fy,cx,cy,RT,Sx,Sy):
-    aug_z=0.7+W
-    UVW= np.array([[U/aug_z],[V/aug_z],[1],[1]]);
-    intrinsic= np.array([[fx,0,cx],[0,fy,cy],[0,0,1]])
-    identity4Z= np.matrix('1 0 0 0;0 1 0 0;0 0 1 0')
-    s= np.array([[1/Sx,0,0],[0,1/Sy,0],[0,0,1]])
-    m= RT.dot(UVW)
-    #print(m)
-    z= intrinsic.dot(identity4Z)
-    m= z.dot(m)
-    #print(m)
-    m=s.dot(m)
-    
-    #turning into homogenous coordinates
-    
-    
-    
-    #return list(int(m[0]), int(m[1]), int(m[2]))
-    return [int(m[0]), int(m[1]), int(m[2])]
   
-  
-"""Lidar""" 
+"""Lidar/Radar""" 
 
 def convertWithoutRT(U,fx,fy,cx,cy,Sx,Sy):
    
@@ -141,7 +93,6 @@ def convertWithoutRT(U,fx,fy,cx,cy,Sx,Sy):
 	if(m[2]==0):
 		m[2]=1
 		
-
 	m[0]=m[0]/m[2]
 	m[1]=m[1]/m[2]
 	m[2]=1
@@ -159,6 +110,95 @@ def LidToPixels(X,Y,Z,RT,fx,fy,Sx,Sy,Cx,Cy):
     cam_cords=convertToCamCoords(X,Y,Z,RT)
     pixels=convertWithoutRT(cam_cords,fx,fy,Cx,Cy,Sx,Sy)
     return [int(pixels[0]), int(pixels[1]), int(pixels[2])]
+
+def mkmeans2(scan):
+	length=len(scan)
+	i=0
+	running_r=[]
+	temp=[]
+	running_theta=[]
+	running_quality=42
+	final=[]
+	got_new=False
+	res_x=100
+	res_y=500
+	#print("Scan:",scan)
+	
+	try:
+		for cursor in scan:
+				
+			#print(i)
+			
+			cart= convertToCartesian(cursor[2],cursor[1])
+			next_cart= cart
+			if(i!=length-1):
+				next_cart=convertToCartesian(scan[i+1][2],scan[i+1][1])	   
+				if( (abs(cart['x']-next_cart['x'])<res_x) and (abs(cart['y']-next_cart['y'])<res_y) ):
+						
+						#print("Prefinal@", i,final)
+						running_r.append(cursor[2])
+						running_theta.append(cursor[1])
+					
+			
+							
+						
+				elif((abs(cart['x']-next_cart['x'])>res_x) or (abs(cart['y']-next_cart['y'])>res_y)):
+						running_r.append(cursor[2])
+						running_theta.append(cursor[1])
+						
+						#print("running_r", running_r)
+						#print("running_theta",running_theta)
+						temp.clear()
+						temp.append(15)
+						temp.append(average(running_theta))
+						temp.append(average(running_r))
+						
+						#print("temp",temp)
+						#rint("Pre Final",final)
+						final.append(temp.copy())
+						running_r.clear()
+						running_theta.clear()
+			else:
+				running_r.append(cursor[2])
+				running_theta.append(cursor[1])
+				
+				#print("running_r", running_r)
+				#print("running_theta",running_theta)
+				temp.clear()
+				temp.append(15)
+				temp.append(average(running_theta))
+				temp.append(average(running_r))
+				
+				#print("temp",temp)
+				#rint("Pre Final",final)
+				final.append(temp.copy())
+				running_r.clear()
+				running_theta.clear()
+				
+						
+						#print(i,"-","final",final)
+			
+				
+			
+				
+				
+				
+			i=i+1
+						
+			
+	except(e):
+		print(e)
+		print("Stupid",i)
+		
+	#print("\nfinal",final)
+
+	return final
+	
+
+def average(arr):
+
+	return sum(arr)/len(arr)
+  
 
 
     

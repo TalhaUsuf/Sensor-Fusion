@@ -29,9 +29,11 @@ turn = True
 #Rotation and Translation Matrices
 
 #Lidar
-RT_lidar=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
+#RT_lidar=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
+RT_lidar=np.matrix('0 1 0 -0.05;0 0 1 -0.05;1 0 0 -0.04')
 #Radar 
-RT=np.matrix('1 0 0 0.05;0 0 -1 -0.06;0 1 0 -0.05')
+#RT=np.matrix('1 0 0 0.05;0 0 -1 -0.06;0 1 0 -0.05')
+RT=np.matrix('1 0 0 0.05;0 0 -1 -0.05;0 1 0 -0.04')
 
 fy=1084
 fx=1089
@@ -101,12 +103,12 @@ def thread_radar():
 		while(count<number_of_obj):
 			
 			#print("Entered loop no",count)
-			x = int(message[index:index+4+1])/100
-			y = int(message[index+5:index+9+1])/100
-			z = int(message[index+10:index+14+1])/100
+			x = int(message[index:index+4+1])
+			y = int(message[index+5:index+9+1])
+			z = int(message[index+10:index+14+1])
 			#print("Radar xyz=  : ",x," ",y," ",z)
 			#calculating radius for scaling circle radius
-			r = math.sqrt(math.pow(x,2)+math.pow(y,2)+pow(z,2))
+			distance = math.sqrt(math.pow(x,2)+math.pow(y,2)+pow(z,2))
 			index = index+15
 			count = count+1
 			
@@ -118,26 +120,14 @@ def thread_radar():
 				rad=5
 			else:
 				rad=5+15/9*r"""
-				
-			#SCALING THE CIRCLES
-			distance= r
-			#CIRCLE WIDTH
-			circle_radius=5
-			if(distance>=12):
-				circle_radius=5
-			elif(distance<0.5):
-				circle_radius=100
-			else:
-				circle_radius= int(100-8.3*distance)
 			
-			#pixel conversion===========================
-			
-			#old method
-			#uv= mk.convertWorldCordsToPixelsRadar(x,y,z,fx,fy,cx,cy,RT,Sx,Sy)
-			
+			# converting to Centimeters.	
+			#distance *= 100
+					
 			#new method
-			uv=mk.LidToPixels(x,y,z,RT,fx,fy,Sx,Sy,cx,cy)
-			uv.append(circle_radius)
+			uv=mk.LidToPixels(x/100,y/100,z/100,RT,fx,fy,Sx,Sy,cx,cy)
+			uv.append(distance)
+			
 			
 			
 			radar_data.append(uv)
@@ -164,22 +154,16 @@ def thread_lidar():
 			x= (cartesian["x"])
 			y= (cartesian["y"])
 		   
-			if(cursor[2]<12000 and((cursor[1]>329 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<31)))):
+			if(cursor[2]<12000):
 
 				uv=mk.LidToPixels(x,y,0,RT_lidar,fx,fy,Sx,Sy,cx,cy)
 
-				#SCALING THE CIRCLES
+				#distance in meters
 				distance= cursor[2]/1000
-				#CIRCLE WIDTH
-				circle_radius=5
-				if(distance>=12):
-					circle_radius=5
-				elif(distance<0.5):
-					circle_radius=100
-				else:
-					circle_radius= int(100-8.3*distance)
+				
 
-				uv.append(circle_radius)
+				uv.append(distance)
+				
 				lidar_data.append(uv)
 				
 #end lidar thread
@@ -262,7 +246,7 @@ while 1:
 			#print(u)
 			#print(v)
 			if (u <=1280 and u>=0 and v<=720 and v>=0):
-				radar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, x)
+				radar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, int(x))
 			#cv2.circle(frame, (x, y), 40, (0, 0, 255), 3)
 			#print(x, y, z)
 			#fusion algorithm
@@ -273,7 +257,7 @@ while 1:
 		lidar_buffer=""
 		for u, v, w, x in lidar_data:
 			if (u <=1280 and u>=0 and v<=720 and v>=0):
-				lidar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, x)
+				lidar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, int(x))
 		
 		
 		
