@@ -8,58 +8,6 @@ import time
 import mkmath as mk
 
 
-def mkmeans(scan):
-    
-    length=len(scan)
-    i=0
-    running_r=[]
-    running_theta=[]
-    running_quality=42
-    final=[]
-    got_new=False
-    try:
-        for cursor in scan:
-                
-            #print(i)
-
-            if(i==(length-1)):
-                    running_r.append(scan[i][1])
-                    running_theta.append(scan[i][2])
-                    temp=[]
-                    temp.append(15)
-                    temp.append( sum(running_r)/len(running_r))
-                    temp.append( sum(running_theta)/len(running_theta))
-                    final.append(temp)
-                    running_r.clear()
-                    running_theta.clear()
-                    break;
-                       
-            elif( (abs(cursor[1]-scan[i+1][1])<2)):
-                    
-                    running_r.append(cursor[1])
-                    #print("running R",running_r)
-                    running_theta.append(cursor[2])
-                    #print("running theta",running_theta)
-            elif(abs(cursor[1]-scan[i+1][1])>2):
-                    running_r.append(scan[i][1])
-                    running_theta.append(scan[i][2])
-                    #print("LARGER")
-                    got_new=True
-                    temp=[]
-                    temp.append(15)
-                    temp.append( sum(running_r)/len(running_r))
-                    temp.append( sum(running_theta)/len(running_theta))
-                    final.append(temp)
-                    running_r.clear()
-                    running_theta.clear()
-            i=i+1
-                        
-            
-    except:
-        print("Stupid",i)
-
-    return final
-			
 #socket
 context = zmq.Context()
 print("Lidar Executable: Connecting to Fusion Engine…")
@@ -85,7 +33,7 @@ while(True):
 
 		scan_FOV=[]
 		scan_gen= lidar.iter_scans()
-		#print("Past iter_Scans")
+		print("Past iter_Scans")
 		
 		time.sleep(0)
 		
@@ -98,7 +46,7 @@ while(True):
 			n_clusters=10
 			
 			for cursor in scan:
-				if(((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<60)))):
+				if((cursor[2]<6000) and((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<60)))):
 					scan_FOV.append(cursor)
 					
 					#print(scan_FOV)
@@ -119,7 +67,7 @@ while(True):
 					#print("Clustered Scan: ",min_scan)
 					socket.send(pickle.dumps(min_scan))
 				else:
-					final_scan=mk.mkmeans(scan_FOV)
+					final_scan=mk.mkmeans2(scan_FOV)
 					#print(scan_FOV)
 					#print("MKmeans",final_scan)
 					socket.send(pickle.dumps(final_scan))
@@ -135,7 +83,9 @@ while(True):
 	except KeyboardInterrupt:
 		print("\nLidar Interrupt Accepted")
 		break;
-	except:
+	except Exception as e:
+		
+		
 		pass
 
 
