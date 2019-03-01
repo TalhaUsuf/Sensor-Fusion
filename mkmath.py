@@ -121,7 +121,7 @@ def mkmeans2(scan):
 	final=[]
 	got_new=False
 	res_x=100
-	res_y=500
+	res_y=200
 	#print("Scan:",scan)
 	
 	try:

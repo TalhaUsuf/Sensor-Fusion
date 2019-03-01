@@ -35,12 +35,23 @@ RT_lidar=np.matrix('0 1 0 -0.05;0 0 1 -0.05;1 0 0 -0.04')
 #RT=np.matrix('1 0 0 0.05;0 0 -1 -0.06;0 1 0 -0.05')
 RT=np.matrix('1 0 0 0.05;0 0 -1 -0.05;0 1 0 -0.04')
 
-fy=1084
-fx=1089
-cx=640
-cy=360
-Sx=16/9
-Sy=1
+enable_720p=True
+
+if(enable_720p):
+	fy=1900
+	fx=1900
+	cx=640
+	cy=360
+	Sx=16/9
+	Sy=1
+else:
+
+	fy=741
+	fx=741
+	cx=320
+	cy=240
+	Sx=4/3
+	Sy=1
 
 
 #pixel buffer for radar
