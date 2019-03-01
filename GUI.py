@@ -30,6 +30,7 @@ camera_radar_fusion_enabled = True
 camera_lidar_fusion_enabled = True
 tol_additional = 0
 
+
 def comms_thread():
 	global detections_c, detections_l, detections_r, detections_f, mutex, radar_font
 
@@ -112,13 +113,15 @@ while(True):
 	ret, frame = cap.read()
 	modf_frame = frame
 	
+	raw_frame= frame.copy()
+	
 	mutex.acquire()
 
 	
 	#print("gui drawing", detections_c)
 
 	for i in detections_c:
-		#modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
+		raw_frame = cv2.rectangle(raw_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
 		camera_radar_score = 0
 		camera_lidar_score = 0
 
@@ -148,11 +151,11 @@ while(True):
 					
 
 	for i in detections_r:
-		#modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
+		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
 		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),2,cv2.LINE_AA)
 	
-	#for i in detections_l:
-		#modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
+	for i in detections_l:
+		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
 
 
 	#display contents from fusion buffer.
@@ -163,8 +166,11 @@ while(True):
 
 		
 	mutex.release()
-
-	cv2.imshow('frame',modf_frame)
+	
+	numpy_horizontal = np.hstack((modf_frame, raw_frame))
+	shortened = cv2.resize(numpy_horizontal, (0, 0), None, .5, .5)
+	
+	cv2.imshow('frame',shortened)
 	
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break
