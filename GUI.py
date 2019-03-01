@@ -12,7 +12,7 @@ detections_c = []
 detections_l = []
 detections_f = [] # final fusion detections.
 
-cap = cv2.VideoCapture(4)
+cap = cv2.VideoCapture(1)
 cap.set(3,1280);
 cap.set(4,720);
 
@@ -113,36 +113,53 @@ while(True):
 	modf_frame = frame
 	
 	mutex.acquire()
+
 	
 	#print("gui drawing", detections_c)
 
 	for i in detections_c:
-		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
+		#modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
+		camera_radar_score = 0
+		camera_lidar_score = 0
 
-		#check for overlapping radar & lidar points.
+		#check for overlapping radar points.
 		if camera_radar_fusion_enabled:
 
 			for j in detections_r:
-				# radar_fusion_tolerance
-				tol = i[3] + tol_additional #tolerance = radius + constant.
-				#check for intersection.
+				# radar_fusion_tolerance = radius + constant.
+				tol = i[3] + tol_additional
+				#check for radar-camera intersection.
 				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
-					#add this bounding box to fusion detection buffer.
-					#WARNING: THIS COULD CREATE DUPLICATES FINAL FUSION BOXES
-					detections_f.append([i[0], i[1], i[2], i[3]])
+					camera_radar_score += 10
+					
+		#check for overlapping lidar points.
+		if camera_lidar_fusion_enabled:
+
+			for j in detections_l:
+				# lidar_fusion_tolerance = radius + constant.
+				tol = i[3] + tol_additional
+				#check for camera-lidar intersection.
+				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
+					camera_lidar_score += 4
+		
+		#add to fusion buffer if we have enough score.
+		if ( (camera_radar_score > 0) and (camera_lidar_score > 0) ):
+			detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
 					
 
 	for i in detections_r:
-		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
-		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 3,(0, 255, 255),2,cv2.LINE_AA)
+		#modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
+		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),2,cv2.LINE_AA)
 	
-	for i in detections_l:
-		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
+	#for i in detections_l:
+		#modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
 
-	#TODO: Remove duplicates in 'detections_f' buffer.
 
+	#display contents from fusion buffer.
 	for i in detections_f:
 		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (255,255,0), 2)
+		modf_frame = cv2.putText(modf_frame,"Radar-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
+		modf_frame = cv2.putText(modf_frame,"Lidar-score = " + str(i[5]),(i[0],i[3]+40), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
 
 		
 	mutex.release()
