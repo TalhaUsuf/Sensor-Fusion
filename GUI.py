@@ -10,6 +10,7 @@ radar_font = cv2.FONT_HERSHEY_SIMPLEX
 detections_r = []
 detections_c = []
 detections_l = []
+detections_f = [] # final fusion detections.
 
 cap = cv2.VideoCapture(4)
 cap.set(3,1280);
@@ -25,8 +26,12 @@ socket.bind("tcp://*:5558")
 
 print("Entering GUI Loop...")
 
+camera_radar_fusion_enabled = True
+camera_lidar_fusion_enabled = True
+tol_additional = 0
+
 def comms_thread():
-	global detections_c, detections_l, detections_r, mutex, radar_font
+	global detections_c, detections_l, detections_r, detections_f, mutex, radar_font
 
 
 	while True:
@@ -36,6 +41,7 @@ def comms_thread():
 		detections_r.clear()
 		detections_c.clear()
 		detections_l.clear()
+		detections_f.clear()
 		
 		mutex.acquire()
 		
@@ -112,13 +118,31 @@ while(True):
 
 	for i in detections_c:
 		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
-		
+
+		#check for overlapping radar & lidar points.
+		if camera_radar_fusion_enabled:
+
+			for j in detections_r:
+				# radar_fusion_tolerance
+				tol = i[3] + tol_additional #tolerance = radius + constant.
+				#check for intersection.
+				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
+					#add this bounding box to fusion detection buffer.
+					#WARNING: THIS COULD CREATE DUPLICATES FINAL FUSION BOXES
+					detections_f.append([i[0], i[1], i[2], i[3]])
+					
+
 	for i in detections_r:
 		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
 		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 3,(0, 255, 255),2,cv2.LINE_AA)
 	
 	for i in detections_l:
 		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
+
+	#TODO: Remove duplicates in 'detections_f' buffer.
+
+	for i in detections_f:
+		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (255,255,0), 2)
 
 		
 	mutex.release()
