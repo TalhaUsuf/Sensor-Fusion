@@ -160,20 +160,20 @@ while(True):
 					
 	for i in detections_r:
 		blind_lidar_score = 0
-		if ( len(detections_c) < 0 ):
+		if ( len(detections_c) < 1 ):
 			# No camera detection, it could be dark.
 			if (blind_RadarLidar_fusion_enabled):
 				for j in detections_l:
-					# lidar_fusion_tolerance = radiusRadar + constant.
-					tol = i[3] + tol_additional
+					# lidar_fusion_tolerance = 2xradiusRadar + constant.
+					tol = 2*i[3] + tol_additional
 					#check for camera-lidar intersection.
 					if ( (j[0] < i[0] + tol) and (j[1] < i[1] + tol) ):
 						blind_lidar_score += 50
 
 			if (blind_lidar_score > blind_score_threshold):
 				#Approxiate a bounding box close to human size.
-				rect_width  = 40 + 20*i[2]
-				rect_height = 120 + 40*i[2]
+				rect_width  = 60 + 30*i[2]
+				rect_height = 120 + 100*i[2]
 				px1 = i[0] - int(rect_width/2)
 				py1 = i[1] - int(rect_height/2)
 				px2 = i[0] + int(rect_width/2)
@@ -194,11 +194,12 @@ while(True):
 
 	#display contents from blind Radar/Lidar Fusion.
 	for i in detections_b:
-		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (204, 0, 204), 2)
-		modf_frame = cv2.putText(modf_frame,"Blind-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,((204, 0, 204),2,cv2.LINE_AA)
+		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (203,192,255), 2)
+		modf_frame = cv2.putText(modf_frame,"Blind-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,(203,192,255),2,cv2.LINE_AA)
+
 
 	mutex.release()
-	
+
 	# create side by side displays, with fusion(left) and without fusion(right).
 	numpy_horizontal = np.hstack((modf_frame, raw_frame))
 	shortened = cv2.resize(numpy_horizontal, (0, 0), None, .5, .5)
