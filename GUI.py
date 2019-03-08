@@ -13,7 +13,7 @@ detections_l = []
 detections_f = [] # final fusion detections.
 detections_b = [] # blind detections (no camera).
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(4)
 cap.set(3,1280);
 cap.set(4,720);
 
@@ -120,7 +120,9 @@ while(True):
 	modf_frame = frame
 	
 	raw_frame= frame.copy()
-	
+	raw_frame= cv2.putText(raw_frame,'PRE-FUSION',(135,50), radar_font, 1,(204, 0, 204),2,cv2.LINE_AA)
+	frame= cv2.putText(frame,'POST-FUSION',(75,50), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
+
 	mutex.acquire()
 
 	
