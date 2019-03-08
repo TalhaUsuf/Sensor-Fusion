@@ -36,7 +36,7 @@ blind_score_threshold = 0
 tol_additional = 0 		#tolerance in addition to radar/lidar radius, for fusion.
 
 def comms_thread():
-	global detections_c, detections_l, detections_r, detections_f, detections_b mutex, radar_font
+	global detections_c, detections_l, detections_r, detections_f, detections_b, mutex, radar_font
 
 
 	while True:
@@ -196,7 +196,7 @@ while(True):
 	for i in detections_b:
 		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (204, 0, 204), 2)
 		modf_frame = cv2.putText(modf_frame,"Blind-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,((204, 0, 204),2,cv2.LINE_AA)
-		
+
 	mutex.release()
 	
 	# create side by side displays, with fusion(left) and without fusion(right).
