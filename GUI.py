@@ -28,8 +28,9 @@ print("Entering GUI Loop...")
 
 camera_radar_fusion_enabled = True
 camera_lidar_fusion_enabled = True
-tol_additional = 0
-
+camRadar_score_threshold = 0
+camLidar_score_threshold = 0
+tol_additional = 0 		#tolerance in addition to radar/lidar radius, for fusion.
 
 def comms_thread():
 	global detections_c, detections_l, detections_r, detections_f, mutex, radar_font
@@ -148,7 +149,7 @@ while(True):
 					camera_lidar_score += 4
 		
 		#add to fusion buffer if we have enough score.
-		if ( (camera_radar_score > 0) and (camera_lidar_score > 0) ):
+		if ( (camera_radar_score > camRadar_score_threshold) and (camera_lidar_score > camLidar_score_threshold) ):
 			detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
 					
 
@@ -169,6 +170,7 @@ while(True):
 		
 	mutex.release()
 	
+	# create side by side displays, with fusion(left) and without fusion(right).
 	numpy_horizontal = np.hstack((modf_frame, raw_frame))
 	shortened = cv2.resize(numpy_horizontal, (0, 0), None, .5, .5)
 	
