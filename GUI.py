@@ -11,6 +11,7 @@ detections_r = []
 detections_c = []
 detections_l = []
 detections_f = [] # final fusion detections.
+detections_b = [] # blind detections (no camera).
 
 cap = cv2.VideoCapture(1)
 cap.set(3,1280);
@@ -28,12 +29,14 @@ print("Entering GUI Loop...")
 
 camera_radar_fusion_enabled = True
 camera_lidar_fusion_enabled = True
+blind_RadarLidar_fusion_enabled = True
 camRadar_score_threshold = 0
 camLidar_score_threshold = 0
+blind_score_threshold = 0
 tol_additional = 0 		#tolerance in addition to radar/lidar radius, for fusion.
 
 def comms_thread():
-	global detections_c, detections_l, detections_r, detections_f, mutex, radar_font
+	global detections_c, detections_l, detections_r, detections_f, detections_b mutex, radar_font
 
 
 	while True:
@@ -44,6 +47,7 @@ def comms_thread():
 		detections_c.clear()
 		detections_l.clear()
 		detections_f.clear()
+		detections_b.clear()
 		
 		mutex.acquire()
 		
@@ -74,6 +78,7 @@ def comms_thread():
 			distance /= 100
 			#print("radar distance is:  ", distance, " meters")
 			
+
 			radar_circle=5
 			if(distance>=12):
 				radar_circle=5
@@ -145,19 +150,39 @@ while(True):
 				#check for camera-lidar intersection.
 				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
 					camera_lidar_score += 4
+
 		
 		#add to fusion buffer if we have enough score.
 		if ( (camera_radar_score > camRadar_score_threshold) and (camera_lidar_score > camLidar_score_threshold) ):
 			detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
 					
-
 	for i in detections_r:
+		blind_lidar_score = 0
+		if ( len(detections_c) < 0 ):
+			# No camera detection, it could be dark.
+			if (blind_RadarLidar_fusion_enabled):
+				for j in detections_l:
+					# lidar_fusion_tolerance = radiusRadar + constant.
+					tol = i[3] + tol_additional
+					#check for camera-lidar intersection.
+					if ( (j[0] < i[0] + tol) and (j[1] < i[1] + tol) ):
+						blind_lidar_score += 50
+
+			if (blind_lidar_score > blind_score_threshold):
+				#Approxiate a bounding box close to human size.
+				rect_width  = 40 + 20*i[2]
+				rect_height = 120 + 40*i[2]
+				px1 = i[0] - int(rect_width/2)
+				py1 = i[1] - int(rect_height/2)
+				px2 = i[0] + int(rect_width/2)
+				py2 = i[1] + int(rect_height/2)
+				detections_b.append([px1, py1, px2, py2, blind_lidar_score])
+
 		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
 		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),2,cv2.LINE_AA)
 	
 	for i in detections_l:
 		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
-
 
 	#display contents from fusion buffer.
 	for i in detections_f:
@@ -165,6 +190,10 @@ while(True):
 		modf_frame = cv2.putText(modf_frame,"Radar-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
 		modf_frame = cv2.putText(modf_frame,"Lidar-score = " + str(i[5]),(i[0],i[3]+40), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
 
+	#display contents from blind Radar/Lidar Fusion.
+	for i in detections_b:
+		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (204, 0, 204), 2)
+		modf_frame = cv2.putText(modf_frame,"Blind-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,((204, 0, 204),2,cv2.LINE_AA)
 		
 	mutex.release()
 	
