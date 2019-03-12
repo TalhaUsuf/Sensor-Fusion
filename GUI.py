@@ -155,8 +155,8 @@ while(True):
 
 		
 		#add to fusion buffer if we have enough score.
-		if ( (camera_radar_score > camRadar_score_threshold) and (camera_lidar_score > camLidar_score_threshold) ):
-			detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
+		#if ( (camera_radar_score > camRadar_score_threshold) and (camera_lidar_score > camLidar_score_threshold) ):
+		detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
 					
 	for i in detections_r:
 		blind_lidar_score = 0
@@ -166,7 +166,7 @@ while(True):
 				for j in detections_l:
 					# lidar_fusion_tolerance = 2xradiusRadar + constant.
 					tol = 2*i[3] + tol_additional
-					#check for camera-lidar intersection.
+					#check for radar-lidar intersection.
 					if ( (j[0] < i[0] + tol) and (j[1] < i[1] + tol) ):
 						blind_lidar_score += 50
 
@@ -175,12 +175,12 @@ while(True):
 				rect_width  = 170 - i[2]/5
 				rect_height = 400 - i[2]/20
 				px1 = i[0] - int(rect_width/2)
-				py1 = i[1] - int(rect_height/2)
+				py1 = i[1] - int(rect_height/2) 
 				px2 = i[0] + int(rect_width/2)
 				py2 = i[1] + int(rect_height/2)
 				detections_b.append([px1, py1, px2, py2, blind_lidar_score])
 
-		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
+		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(204, 0, 204),10)
 		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),2,cv2.LINE_AA)
 	
 	for i in detections_l:
