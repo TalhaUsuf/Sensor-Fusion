@@ -13,7 +13,7 @@ detections_l = []
 detections_f = [] # final fusion detections.
 detections_b = [] # blind detections (no camera).
 
-cap = cv2.VideoCapture(4)
+cap = cv2.VideoCapture(1)
 cap.set(3,1280);
 cap.set(4,720);
 
@@ -172,8 +172,8 @@ while(True):
 
 			if (blind_lidar_score > blind_score_threshold):
 				#Approxiate a bounding box close to human size.
-				rect_width  = 60 + 30*i[2]
-				rect_height = 120 + 100*i[2]
+				rect_width  = 170 - i[2]/5
+				rect_height = 400 - i[2]/20
 				px1 = i[0] - int(rect_width/2)
 				py1 = i[1] - int(rect_height/2)
 				px2 = i[0] + int(rect_width/2)
