@@ -138,7 +138,7 @@ while(True):
 
 			for j in detections_r:
 				# radar_fusion_tolerance = radius + constant.
-				tol = i[3] + tol_additional
+				tol = j[3] + tol_additional
 				#check for radar-camera intersection.
 				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
 					camera_radar_score += 10
@@ -148,7 +148,7 @@ while(True):
 
 			for j in detections_l:
 				# lidar_fusion_tolerance = radius + constant.
-				tol = i[3] + tol_additional
+				tol = j[3] + tol_additional
 				#check for camera-lidar intersection.
 				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
 					camera_lidar_score += 4
