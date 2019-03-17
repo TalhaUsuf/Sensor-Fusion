@@ -10,15 +10,13 @@ radar_font = cv2.FONT_HERSHEY_SIMPLEX
 detections_r = []
 detections_c = []
 detections_l = []
+detections_f = [] # final fusion detections.
+detections_b = [] # blind detections (no camera).
 
 cap = cv2.VideoCapture(1)
-
 cap.set(3,1280);
 cap.set(4,720);
 
-
-
-#print("\n\nW=",cap.get(3) , "H=\n\n",cap.get(4) )
 
 context = zmq.Context()
 
@@ -29,8 +27,16 @@ socket.bind("tcp://*:5558")
 
 print("Entering GUI Loop...")
 
+camera_radar_fusion_enabled = True
+camera_lidar_fusion_enabled = True
+blind_RadarLidar_fusion_enabled = True
+camRadar_score_threshold = 0
+camLidar_score_threshold = 0
+blind_score_threshold = 0
+tol_additional = 0 		#tolerance in addition to radar/lidar radius, for fusion.
+
 def comms_thread():
-	global detections_c, detections_l, detections_r, mutex, radar_font
+	global detections_c, detections_l, detections_r, detections_f, detections_b, mutex, radar_font
 
 
 	while True:
@@ -40,6 +46,8 @@ def comms_thread():
 		detections_r.clear()
 		detections_c.clear()
 		detections_l.clear()
+		detections_f.clear()
+		detections_b.clear()
 		
 		mutex.acquire()
 		
@@ -70,6 +78,7 @@ def comms_thread():
 			distance /= 100
 			#print("radar distance is:  ", distance, " meters")
 			
+
 			radar_circle=5
 			if(distance>=12):
 				radar_circle=5
@@ -110,26 +119,92 @@ while(True):
 	ret, frame = cap.read()
 	modf_frame = frame
 	
+	raw_frame= frame.copy()
+	raw_frame= cv2.putText(raw_frame,'PRE-FUSION',(135,50), radar_font, 1,(204, 0, 204),2,cv2.LINE_AA)
+	frame= cv2.putText(frame,'POST-FUSION',(75,50), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
+
 	mutex.acquire()
+
 	
 	#print("gui drawing", detections_c)
 
 	for i in detections_c:
-		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
+		raw_frame = cv2.rectangle(raw_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
+		camera_radar_score = 0
+		camera_lidar_score = 0
+
+		#check for overlapping radar points.
+		if camera_radar_fusion_enabled:
+
+			for j in detections_r:
+				# radar_fusion_tolerance = radius + constant.
+				tol = j[3] + tol_additional
+				#check for radar-camera intersection.
+				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
+					camera_radar_score += 10
+					
+		#check for overlapping lidar points.
+		if camera_lidar_fusion_enabled:
+
+			for j in detections_l:
+				# lidar_fusion_tolerance = radius + constant.
+				tol = j[3] + tol_additional
+				#check for camera-lidar intersection.
+				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
+					camera_lidar_score += 4
+
 		
+		#add to fusion buffer if we have enough score.
+		#if ( (camera_radar_score > camRadar_score_threshold) and (camera_lidar_score > camLidar_score_threshold) ):
+		detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
+					
 	for i in detections_r:
-		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(204, 0, 204),3)
-		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),1,cv2.LINE_AA)
+		blind_lidar_score = 0
+		if ( len(detections_c) < 1 ):
+			# No camera detection, it could be dark.
+			if (blind_RadarLidar_fusion_enabled):
+				for j in detections_l:
+					# lidar_fusion_tolerance = 2xradiusRadar + constant.
+					tol = 2*i[3] + tol_additional
+					#check for radar-lidar intersection.
+					if ( (j[0] < i[0] + tol) and (j[1] < i[1] + tol) ):
+						blind_lidar_score += 50
+
+			if (blind_lidar_score > blind_score_threshold):
+				#Approxiate a bounding box close to human size.
+				rect_width  = 170 - i[2]/5
+				rect_height = 400 - i[2]/20
+				px1 = i[0] - int(rect_width/2)
+				py1 = i[1] - int(rect_height/2) 
+				px2 = i[0] + int(rect_width/2)
+				py2 = i[1] + int(rect_height/2)
+				detections_b.append([px1, py1, px2, py2, blind_lidar_score])
+
+		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(204, 0, 204),10)
+		modf_frame=cv2.putText(modf_frame,str(i[2])+"m",(i[0]+15,i[1]-50), radar_font, 1,(0, 255, 255),2,cv2.LINE_AA)
 	
 	for i in detections_l:
-		modf_frame=cv2.circle(modf_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
+		raw_frame=cv2.circle(raw_frame,(i[0], i[1]), i[3],(0, 191, 255),3)
 
-		
+	#display contents from fusion buffer.
+	for i in detections_f:
+		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (255,255,0), 2)
+		modf_frame = cv2.putText(modf_frame,"Radar-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
+		modf_frame = cv2.putText(modf_frame,"Lidar-score = " + str(i[5]),(i[0],i[3]+40), radar_font, 1,(255,255,0),2,cv2.LINE_AA)
+
+	#display contents from blind Radar/Lidar Fusion.
+	for i in detections_b:
+		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (203,192,255), 2)
+		modf_frame = cv2.putText(modf_frame,"Blind-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,(203,192,255),2,cv2.LINE_AA)
+
+
 	mutex.release()
 
-	cv2.imshow('frame',modf_frame)
-	#print("From Shape: W=",modf_frame.shape[1], "H=",modf_frame.shape[0])
-	#print("From capture: W=",cap.get(3) , "H=",cap.get(4) )
+	# create side by side displays, with fusion(left) and without fusion(right).
+	numpy_horizontal = np.hstack((modf_frame, raw_frame))
+	shortened = cv2.resize(numpy_horizontal, (0, 0), None, .5, .5)
+	
+	cv2.imshow('frame',shortened)
 	
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		break

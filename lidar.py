@@ -122,7 +122,7 @@ while(True):
 					final_scan=mk.mkmeans2(scan_FOV)
 					#print(scan_FOV)
 					#print("MKmeans",final_scan)
-					socket.send(pickle.dumps(final_scan))
+					socket.send(pickle.dumps(scan_FOV))
 				#  Get the reply.
 				message = socket.recv()
 				#print("Received reply: %s"%message)
