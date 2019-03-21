@@ -1,5 +1,6 @@
 # ADAS2019
-Advanced Driver Assistance Systems (ADAS), Carleton University, 2019 Undergraduate 4th year Student Project
+Advanced Driver Assistance Systems (ADAS), Carleton University, Canada, 2018-2019
+Undergraduate 4th year Student Project
 
 **Developers:**
 - Shamoon Irshad
