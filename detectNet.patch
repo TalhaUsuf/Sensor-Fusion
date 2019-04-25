@@ -1,0 +1,191 @@
+diff --git a/detectnet-camera/CMakeLists.txt b/detectnet-camera/CMakeLists.txt
+index e92c6d9..450d175 100644
+--- a/detectnet-camera/CMakeLists.txt
++++ b/detectnet-camera/CMakeLists.txt
+@@ -4,6 +4,6 @@ file(GLOB detectnetCameraIncludes *.h )
+ 
+ cuda_add_executable(detectnet-camera ${detectnetCameraSources})
+ 
+-target_link_libraries(detectnet-camera nvcaffe_parser nvinfer jetson-inference)
++target_link_libraries(detectnet-camera nvcaffe_parser nvinfer jetson-inference zmq)
+ 
+ install(TARGETS detectnet-camera DESTINATION bin)
+diff --git a/detectnet-camera/detectnet-camera.cpp b/detectnet-camera/detectnet-camera.cpp
+index 85d9a35..96dd562 100644
+--- a/detectnet-camera/detectnet-camera.cpp
++++ b/detectnet-camera/detectnet-camera.cpp
+@@ -23,7 +23,7 @@
+ #include "gstCamera.h"
+ 
+ #include "glDisplay.h"
+-#include "glTexture.h"
++#include "glTexture.h" 
+ 
+ #include <stdio.h>
+ #include <signal.h>
+@@ -35,9 +35,20 @@
+ 
+ #include "detectNet.h"
+ 
++//#include <zmq.hpp>
++#include <zmq.h>
++
++
++#define DEFAULT_CAMERA 3	// -1 for onboard camera, or change to index of /dev/video V4L2 camera (>=0)	
++
++#define PORT "5555" /*To connect to Fusion Engine using ZMQ-Socket*/
++
++#define SEND_SINGLE_SIZE 20 	/* = 4*4+4, Four Integer-characters for each pixel coordinate, + confidence*/
++
++#define MAX_BBOXES		10  /*Maximum No. of Bounding Boxes for sending to ZMQ server.*/
++
++#define SEND_ALL_SIZE  (SEND_SINGLE_SIZE * MAX_BBOXES + 1)
+ 
+-#define DEFAULT_CAMERA -1	// -1 for onboard camera, or change to index of /dev/video V4L2 camera (>=0)	
+-		
+ 
+ bool signal_recieved = false;
+ 
+@@ -46,7 +57,7 @@ void sig_handler(int signo)
+ 	if( signo == SIGINT )
+ 	{
+ 		printf("received SIGINT\n");
+-		signal_recieved = true;
++		signal_recieved = true; 
+ 	}
+ }
+ 
+@@ -60,6 +71,17 @@ int main( int argc, char** argv )
+ 		
+ 	printf("\n\n");
+ 	
++	//  Prepare our ZMQ context and socket
++    //zmq::context_t context (1);
++    //zmq::socket_t socket (context, ZMQ_REQ);
++    
++    printf("\n Connecting to Fusion Engine ZMQ server\n\n");
++    //socket.connect ("tcp://localhost:" PORT);
++    
++    void *context = zmq_ctx_new ();
++    void *requester = zmq_socket (context, ZMQ_REQ);
++    zmq_connect (requester, "tcp://localhost:" PORT);
++	
+ 
+ 	/*
+ 	 * parse network type from CLI arguments
+@@ -131,7 +153,8 @@ int main( int argc, char** argv )
+ 	/*
+ 	 * create openGL window
+ 	 */
+-	glDisplay* display = glDisplay::Create();
++	//glDisplay* display = glDisplay::Create();
++	glDisplay* display = NULL;
+ 	glTexture* texture = NULL;
+ 	
+ 	if( !display ) {
+@@ -169,6 +192,13 @@ int main( int argc, char** argv )
+ 	 */
+ 	float confidence = 0.0f;
+ 	
++	char send_buffer[SEND_SINGLE_SIZE];
++	char send_single[SEND_SINGLE_SIZE + 1];
++	char send_all_buffer[SEND_ALL_SIZE];
++	char buffer [10];
++	int zmq_flags;
++	int nbytes_tosend = 1; 		
++	
+ 	while( !signal_recieved )
+ 	{
+ 		void* imgCPU  = NULL;
+@@ -189,18 +219,54 @@ int main( int argc, char** argv )
+ 	
+ 		if( net->Detect((float*)imgRGBA, camera->GetWidth(), camera->GetHeight(), bbCPU, &numBoundingBoxes, confCPU))
+ 		{
+-			printf("%i bounding boxes detected\n", numBoundingBoxes);
++			//printf("%i bounding boxes detected\n", numBoundingBoxes);
+ 		
+ 			int lastClass = 0;
+ 			int lastStart = 0;
+ 			
++			//flush the send-all buffer.
++			memset(send_all_buffer, 0, SEND_ALL_SIZE);
++			nbytes_tosend = 1;	/*At least a NULL character to send */
++			
+ 			for( int n=0; n < numBoundingBoxes; n++ )
+ 			{
+ 				const int nc = confCPU[n*2+1];
+ 				float* bb = bbCPU + (n * 4);
+ 				
+-				printf("detected obj %i  class #%u (%s)  confidence=%f\n", n, nc, net->GetClassDesc(nc), confCPU[n*2]);
+-				printf("bounding box %i  (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, bb[0], bb[1], bb[2], bb[3], bb[2] - bb[0], bb[3] - bb[1]); 
++				//printf("detected obj %i  class #%u (%s)  confidence=%f\n", n, nc, net->GetClassDesc(nc), confCPU[n*2]);
++				//printf("bounding box %i  (%f, %f)  (%f, %f)  w=%f  h=%f\n", n, bb[0], bb[1], bb[2], bb[3], bb[2] - bb[0], bb[3] - bb[1]); 
++				
++				//sprintf(send_buffer, "%04.0f%04.0f%04.0f%04.0f \n", bb[0], bb[1], bb[2], bb[3]);
++				
++				if (n < MAX_BBOXES){
++					//craft a digit string for this single bounding box.
++					memset(send_single, 0, SEND_SINGLE_SIZE + 1);
++					//sprintf(send_single, "%04.0f%04.0f%04.0f%04.0f", bb[0], bb[1], bb[2], bb[3]);
++					sprintf(send_single, "%04.0f%04.0f%04.0f%04.0f%04.0f", bb[0], bb[1], bb[2], bb[3], 10000*confCPU[n*2]);
++
++					//append to the send-all buffer.
++					strncat(send_all_buffer, send_single, SEND_SINGLE_SIZE);
++					nbytes_tosend += SEND_SINGLE_SIZE;
++				}
++				
++				//ZMQ Send
++				//zmq::message_t request (5);
++				//memcpy (request.data (), "Hello", 5);
++				
++				//socket.send (request);
++
++				//  Get the reply.
++				//zmq::message_t reply;
++				//socket.recv (&reply);
++				
++				//can be used for multipart messages, if sought. 
++				zmq_flags = 0;
++				if ( (numBoundingBoxes > 1) 			/*There are more than one bounding-boxes */
++					  && (n < numBoundingBoxes - 1) )  	/*and This is Not the last bounding-box*/
++				{
++					zmq_flags = ZMQ_SNDMORE;
++				}
++					
+ 				
+ 				if( nc != lastClass || n == (numBoundingBoxes - 1) )
+ 				{
+@@ -214,6 +280,14 @@ int main( int argc, char** argv )
+ 					CUDA(cudaDeviceSynchronize());
+ 				}
+ 			}
++			
++			if (numBoundingBoxes > 0) {
++				zmq_send (requester, send_all_buffer, nbytes_tosend, 0);	
++			} else {
++				// No Person detected. Send a single NULL byte.
++				zmq_send (requester, "\0", 1, 0);
++			}
++			zmq_recv (requester, buffer, 10, 0);			
+ 		
+ 			/*if( font != NULL )
+ 			{
+@@ -230,6 +304,12 @@ int main( int argc, char** argv )
+ 				sprintf(str, "TensorRT %i.%i.%i | %s | %04.1f FPS", NV_TENSORRT_MAJOR, NV_TENSORRT_MINOR, NV_TENSORRT_PATCH, precisionTypeToStr(net->GetPrecision()), display->GetFPS());
+ 				display->SetTitle(str);	
+ 			}	
++		} 
++		else {
++
++			// No Person detected. Send a single NULL byte.
++			zmq_send (requester, "\0", 1, 0);
++			zmq_recv (requester, buffer, 10, 0);
+ 		}	
+ 
+ 
+diff --git a/utils b/utils
+--- a/utils
++++ b/utils
+@@ -1 +1 @@
+-Subproject commit b337733d4f1000b87979cb982ced30445d42b5b3
++Subproject commit b337733d4f1000b87979cb982ced30445d42b5b3-dirty
