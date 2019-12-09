@@ -11,13 +11,10 @@ Undergraduate 4th year Student Project
 
 **About**
 
-This project is a sensor fusion implementation on the NVIDIA JETSON TX2 development board. The sensory data from a camera, RADAR, and LIDAR are combined using a novel sensor-fusion algorithm to produce a high reliability pedestrian detector.
+This project is a sensor fusion implementation on the NVIDIA Jetson TX2 development board. The sensory data from a camera, RADAR, and LIDAR are combined using a novel sensor-fusion algorithm to produce a high reliability pedestrian detector.
 
 **Implementation**
 
 **Dependancies**
 
-HARDWARE:
-
-
-SOFTWARE;
+tbd...
