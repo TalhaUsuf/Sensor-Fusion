@@ -55,8 +55,6 @@ def thread_camera():
 	global turn
 	
 	while True:
-		
-		
 		#  Wait for next request from client
 		message_camera = socket_camera.recv()
 		
@@ -113,15 +111,6 @@ def thread_radar():
 			index = index+15
 			count = count+1
 			
-			#radius
-			"""rad=10
-			if(r<1):
-				rad=20
-			elif(r>10):
-				rad=5
-			else:
-				rad=5+15/9*r"""
-			
 			# converting to Centimeters.	
 			#distance *= 100
 					
@@ -129,25 +118,20 @@ def thread_radar():
 			uv=mk.LidToPixels(x/100,y/100,z/100,RT,fx,fy,Sx,Sy,cx,cy)
 			uv.append(distance)
 			
-			
-			
 			radar_data.append(uv)
 			
 		#resetting loop params	
 		index=0
 		count=0
 		
-"""LIDAR"""
 		
 def thread_lidar():
 	while(True): 
 	
 		message = socket_lidar.recv()
-		#print("Received lidar scan")
 		socket_lidar.send(b"200")
 		lidar_data.clear()
 		payload=pickle.loads(message)
-		#print("Lidar Msg:",payload)
 		
 		for cursor in payload:
 
@@ -162,18 +146,11 @@ def thread_lidar():
 				#distance in meters
 				distance= cursor[2]/1000
 				
-
 				uv.append(distance)
 				
 				lidar_data.append(uv)
-				
-#end lidar thread
+
 		
-		
-		
-		
-		
-	
 
 #############################################
 ########## INITALIZATION ###################
@@ -224,7 +201,8 @@ try:
 except:
 	print("Error: Unable to start thread")
 	
-print("Entering loop")
+
+print("Running....")
 
 while 1:
 	
@@ -232,39 +210,18 @@ while 1:
 		camera_data_mutex.acquire()
 		camera_buffer = ""
 		for x1, y1, x2, y2, cert in camera_data:
-			#camera_buffer += "{0:04d}%{1:04d}%{2:04d}%{3:04d}%{4:5.3f}|".format(x1, y1, x2, y2, cert)
 			camera_buffer += "{0:04d}{1:04d}{2:04d}{3:04d}{4:5.3f}".format(x1, y1, x2, y2, cert)
-			#cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3) 
-			#print(x1, y1, x2, y2, e)
-		
-		#print("Radar Data")
+
 		radar_buffer = ""
-		#FIX THIS: radar_data is not in x,y,z
-		#for x, y, z in radar_data:
+
 		for u, v, w, x in radar_data:
-			#radar_buffer += "{0:03d}{1:03d}{2:03d}".format(x, y, z)
-			#radar_buffer += "{0:d}%{1:d}|".format(u, v)
-			#print(u)
-			#print(v)
 			if (u <=1280 and u>=0 and v<=720 and v>=0):
 				radar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, int(x))
-			#cv2.circle(frame, (x, y), 40, (0, 0, 255), 3)
-			#print(x, y, z)
-			#fusion algorithm
-		
-		
-		#radar_buffer = radar_buffer[:-1]
-		'''LIDAR MUJAHEED'''
+
 		lidar_buffer=""
 		for u, v, w, x in lidar_data:
 			if (u <=1280 and u>=0 and v<=720 and v>=0):
 				lidar_buffer += "{0:04d}{1:04d}{2:04d}".format(u, v, int(x))
-		
-		
-		
-		
-		'''LIDAR MUJAHEED END'''
-		#print("==========")
 		
 		#crafting a single message to send to GUI, using '/' delimiters.
 		#print("sending to gui...", camera_buffer)

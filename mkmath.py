@@ -80,8 +80,6 @@ def convertToCartesanRadians(radius,radians):
     #print(cartesian)
     return cartesian    
     
-
-
   
 """Lidar/Radar""" 
 
@@ -138,9 +136,6 @@ def mkmeans2(scan):
 						#print("Prefinal@", i,final)
 						running_r.append(cursor[2])
 						running_theta.append(cursor[1])
-					
-			
-							
 						
 				elif((abs(cart['x']-next_cart['x'])>res_x) or (abs(cart['y']-next_cart['y'])>res_y)):
 						running_r.append(cursor[2])
@@ -175,13 +170,6 @@ def mkmeans2(scan):
 				running_r.clear()
 				running_theta.clear()
 				
-						
-						#print(i,"-","final",final)
-			
-				
-			
-				
-				
 				
 			i=i+1
 						
@@ -194,16 +182,7 @@ def mkmeans2(scan):
 
 	return final
 	
-
 def average(arr):
 
 	return sum(arr)/len(arr)
   
-
-
-    
-"""
-RT=np.matrix('1 0 0 0;0 1 0 0;0 0 1 0.01;0 0 0 1')
-m = convertWorldCordsToPixels(1.5,10,0.5,715,98,98,RT,4,3)
-print(m)
-"""

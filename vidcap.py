@@ -18,10 +18,7 @@ cw=10000
 
 #start capturing
 
-
-
 cap = cv2.VideoCapture(0)
-
 
 while(True):
     # Capture frame-by-frame

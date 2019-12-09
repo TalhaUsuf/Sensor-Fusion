@@ -14,9 +14,8 @@ detections_f = [] # final fusion detections.
 detections_b = [] # blind detections (no camera).
 
 cap = cv2.VideoCapture(1)
-cap.set(3,1280);
-cap.set(4,720);
-
+cap.set(3,1280)
+cap.set(4,720)
 
 context = zmq.Context()
 
@@ -38,7 +37,6 @@ tol_additional = 0 		#tolerance in addition to radar/lidar radius, for fusion.
 def comms_thread():
 	global detections_c, detections_l, detections_r, detections_f, detections_b, mutex, radar_font
 
-
 	while True:
 		message = socket.recv_string()
 		socket.send(b"world")
@@ -57,7 +55,7 @@ def comms_thread():
 		radar_data = data[1]
 		lidar_data = data[2]
 
-			#breakdown the aggregated camera_data into individual rectangles, then draw rectangles on the frame. 
+		#breakdown the aggregated camera_data into individual rectangles, then draw rectangles on the frame. 
 		while len(camera_data)>20:
 			px1 = int(camera_data[0:4])
 			py1 = int(camera_data[4:8])

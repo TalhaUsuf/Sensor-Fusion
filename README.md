@@ -9,4 +9,15 @@ Undergraduate 4th year Student Project
 - Youssef Al-Sabbagh
 - Junwen Fu
 
-![shamoon_poster2](https://user-images.githubusercontent.com/26262604/54728103-1c8e4c80-4b52-11e9-8121-c97939e11916.jpg)
+**About**
+
+This project is a sensor fusion implementation on the NVIDIA JETSON TX2 development board. The sensory data from a camera, RADAR, and LIDAR are combined using a novel sensor-fusion algorithm to produce a high reliability pedestrian detector.
+
+**Implementation**
+
+**Dependancies**
+
+HARDWARE:
+
+
+SOFTWARE;

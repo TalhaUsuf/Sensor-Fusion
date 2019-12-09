@@ -7,7 +7,6 @@ from sklearn.cluster import KMeans
 import time
 import mkmath as mk
 
-
 def mkmeans(scan):
     
     length=len(scan)
@@ -130,24 +129,13 @@ while(True):
 			
 			
 			
-		break;
+		break
 	
 	except KeyboardInterrupt:
 		print("\nLidar Interrupt Accepted")
-		break;
+		break
 	except:
 		pass
-
-
-
-
-		
-		
-		
-    
-    #print(scan)
-    #if i > 1000:
-       # break
 
 lidar.stop()
 lidar.stop_motor()
