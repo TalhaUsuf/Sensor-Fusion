@@ -17,6 +17,25 @@ This project is a sensor fusion implementation on the NVIDIA Jetson TX2 developm
 
 [![Not Found](https://img.youtube.com/vi/swne_90ZV08/0.jpg)](https://www.youtube.com/watch?v=swne_90ZV08)
 
+<img src="/media/system_diagram.PNG">
+
+System Diagram
+
 **Dependancies**
+
+Hardware: 
+
+Platform: Nvidia Jetson TX2 (Nvidia Pascal GPU, ARM Cortex-A57 CPU, 8GB RAM)
+Camera: Intel D435 (depth sensing, 30fps, 1280x720)
+RADAR: TI AWR1642 (1cm resolution)
+LIDAR: RPLidar A1M8 (2mm resolution)
+
+Software:
+
+TensorFlow
+TensorRT
+
+
+
 
 tbd...
