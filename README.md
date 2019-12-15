@@ -15,11 +15,17 @@ This project is a sensor fusion implementation on the NVIDIA Jetson TX2 developm
 
 **Demo**
 
+Simple Demonstration of pedestrian detection.
+
 [![Not Found](https://img.youtube.com/vi/swne_90ZV08/0.jpg)](https://www.youtube.com/watch?v=swne_90ZV08)
 
-<img src="/media/system_diagram.PNG">
+Blind detection - despite a false-negative from the camera sensor, RADAR and LIDAR provide enough information to make a reasonable estimate of pedestrian position.
 
-System Diagram
+<img src="/media/blind.PNG">
+
+**System Diagram**
+
+<img src="/media/system_diagram.PNG">
 
 **Dependancies**
 
@@ -34,8 +40,4 @@ Software:
 
 TensorFlow
 TensorRT
-
-
-
-
-tbd...
+NVIDIA Jetpack
