@@ -25,8 +25,6 @@ def mkmeans(scan):
     try:
         for cursor in scan:
                 
-            #print(i)
-
             if(i==(length-1)):
                     running_r.append(scan[i][1])
                     running_theta.append(scan[i][2])
@@ -37,18 +35,15 @@ def mkmeans(scan):
                     final.append(temp)
                     running_r.clear()
                     running_theta.clear()
-                    break;
+                    break
                        
             elif( (abs(cursor[1]-scan[i+1][1])<2)):
                     
                     running_r.append(cursor[1])
-                    #print("running R",running_r)
                     running_theta.append(cursor[2])
-                    #print("running theta",running_theta)
             elif(abs(cursor[1]-scan[i+1][1])>2):
                     running_r.append(scan[i][1])
                     running_theta.append(scan[i][2])
-                    #print("LARGER")
                     got_new=True
                     temp=[]
                     temp.append(15)
@@ -59,7 +54,6 @@ def mkmeans(scan):
                     running_theta.clear()
             i=i+1
                         
-            
     except:
         print("Stupid",i)
 
@@ -76,12 +70,10 @@ lidar = RPLidar('/dev/ttyUSB0')
 
 lidar.clear_input()
 
-
 enable_kmeans=False
 
 #diagnostics
 while(True):
-
 	try:
 		info = lidar.get_info()
 		print(info)
@@ -95,18 +87,12 @@ while(True):
 		time.sleep(0)
 		
 		for i, scan in enumerate(scan_gen):
-			#print("I am in the loop")
-			
-			#print('%d: Got %d measurments' % (i, len(scan)))
-			#print("Sending Scan")
 			scan_FOV.clear()
 			n_clusters=10
 			
 			for cursor in scan:
 				if((cursor[2]<8000) and((cursor[1]>300 and cursor[1]<361)or((cursor[1]>=0 and cursor[1]<60)))):
 					scan_FOV.append(cursor)
-					
-					#print(scan_FOV)
 					
 			if (len(scan_FOV)!=0):
 				
@@ -120,21 +106,13 @@ while(True):
 					scan_kmeans=KMeans(n_clusters)
 					kmeans_scan_obj=scan_kmeans.fit(np_scan)
 					min_scan=kmeans_scan_obj.cluster_centers_
-				
-					#print("Clustered Scan: ",min_scan)
 					socket.send(pickle.dumps(min_scan))
 				else:
 					final_scan=mk.mkmeans2(scan_FOV)
-					#print(scan_FOV)
-					#print("MKmeans",final_scan)
 					socket.send(pickle.dumps(scan_FOV))
+
 				#  Get the reply.
-				message = socket.recv()
-				#print("Received reply: %s"%message)
-			
-			
-			
-			
+				message = socket.recv()	
 		break
 	
 	except KeyboardInterrupt:

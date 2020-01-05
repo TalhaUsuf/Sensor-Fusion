@@ -8,7 +8,6 @@ being forwarded to the GUI process.
 
 '''
 
-
 import time
 import zmq
 import subprocess
@@ -42,7 +41,6 @@ turn = True
 RT_lidar=np.matrix('0 1 0 -0.05;0 0 1 -0.05;1 0 0 -0.04')
 #Radar 
 RT=np.matrix('1 0 0 0.05;0 0 -1 -0.05;0 1 0 -0.04')
-
 
 fy=1980
 fx=1980
@@ -122,7 +120,6 @@ def thread_radar():
 		index=0
 		count=0
 		
-		
 def thread_lidar():
 	while(True): 
 	
@@ -149,7 +146,6 @@ def thread_lidar():
 				lidar_data.append(uv)
 
 		
-
 # INITIALIZATION
 
 #create camera vision socket
@@ -193,7 +189,6 @@ try:
 except:
 	print("Error: Unable to start thread")
 	
-
 print("Running....")
 
 while 1:
@@ -222,10 +217,8 @@ while 1:
 		gui_message = socket_gui.recv()
 		#print("Received reply")
 		
-		
 		camera_data_mutex.release()
 		
 		turn = False
 
 	pass
-

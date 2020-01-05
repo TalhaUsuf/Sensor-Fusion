@@ -32,7 +32,7 @@ def mkmeans(scan):
 					final.append(temp)
 					running_r.clear()
 					running_theta.clear()
-					break;
+					break
 					   
 			elif( (abs(cursor[1]-scan[i+1][1])<2)):
 					
@@ -177,16 +177,7 @@ def mkmeans2(scan):
 				
 			i=i+1
 						
-			
-	except(e):
-		print(e)
-		print("Stupid",i)
-		
-	#print("\nfinal",final)
-
 	return final
 	
 def average(arr):
-
 	return sum(arr)/len(arr)
-  

@@ -20,6 +20,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
+ /*
+  * Original File modified as part of the Sensor Fusion project.
+  */
+
 #include "gstCamera.h"
 
 #include "glDisplay.h"
@@ -37,7 +41,6 @@
 
 #include <zmq.h>
 
-
 #define DEFAULT_CAMERA 3	// -1 for onboard camera, or change to index of /dev/video V4L2 camera (>=0)	
 
 #define PORT "5555" /*To connect to Fusion Engine using ZMQ-Socket*/
@@ -47,7 +50,6 @@
 #define MAX_BBOXES		10  /*Maximum No. of Bounding Boxes for sending to ZMQ server.*/
 
 #define SEND_ALL_SIZE  (SEND_SINGLE_SIZE * MAX_BBOXES + 1)
-
 
 bool signal_recieved = false;
 
@@ -60,7 +62,6 @@ void sig_handler(int signo)
 	}
 }
 
-
 int main( int argc, char** argv )
 {
 	printf("detectnet-camera\n  args (%i):  ", argc);
@@ -70,32 +71,12 @@ int main( int argc, char** argv )
 		
 	printf("\n\n");
 	
-	//  Prepare our ZMQ context and socket
-    //zmq::context_t context (1);
-    //zmq::socket_t socket (context, ZMQ_REQ);
-    
     printf("\n Connecting to Fusion Engine ZMQ server\n\n");
     //socket.connect ("tcp://localhost:" PORT);
     
     void *context = zmq_ctx_new ();
     void *requester = zmq_socket (context, ZMQ_REQ);
     zmq_connect (requester, "tcp://localhost:" PORT);
-	
-
-	/*
-	 * parse network type from CLI arguments
-	 */
-	/*detectNet::NetworkType networkType = detectNet::PEDNET_MULTI;
-
-	if( argc > 1 )
-	{
-		if( strcmp(argv[1], "multiped") == 0 || strcmp(argv[1], "pednet") == 0 || strcmp(argv[1], "multiped-500") == 0 )
-			networkType = detectNet::PEDNET_MULTI;
-		else if( strcmp(argv[1], "ped-100") == 0 )
-			networkType = detectNet::PEDNET;
-		else if( strcmp(argv[1], "facenet") == 0 || strcmp(argv[1], "facenet-120") == 0 || strcmp(argv[1], "face-120") == 0 )
-			networkType = detectNet::FACENET;
-	}*/
 	
 	if( signal(SIGINT, sig_handler) == SIG_ERR )
 		printf("\ncan't catch SIGINT\n");

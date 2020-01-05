@@ -85,7 +85,6 @@ def comms_thread():
 			distance /= 100
 			#print("radar distance is:  ", distance, " meters")
 			
-
 			radar_circle=5
 			if(distance>=12):
 				radar_circle=5
@@ -132,9 +131,6 @@ while(True):
 
 	mutex.acquire()
 
-	
-	#print("gui drawing", detections_c)
-
 	for i in detections_c:
 		raw_frame = cv2.rectangle(raw_frame, (i[0], i[1]), (i[2], i[3]), (0,255,0), 2)
 		camera_radar_score = 0
@@ -160,7 +156,6 @@ while(True):
 				if ((j[0] > i[0] - tol) and (j[0] < i[2] + tol) and (j[1] > i[1] - tol) and (j[1] < i[3] + tol)):
 					camera_lidar_score += 4
 
-		
 		#add to fusion buffer if we have enough score.
 		#if ( (camera_radar_score > camRadar_score_threshold) and (camera_lidar_score > camLidar_score_threshold) ):
 		detections_f.append([i[0], i[1], i[2], i[3], camera_radar_score, camera_lidar_score])
@@ -203,7 +198,6 @@ while(True):
 	for i in detections_b:
 		modf_frame = cv2.rectangle(modf_frame, (i[0], i[1]), (i[2], i[3]), (203,192,255), 2)
 		modf_frame = cv2.putText(modf_frame,"Blind-score = " + str(i[4]),(i[0],i[3]+10), radar_font, 1,(203,192,255),2,cv2.LINE_AA)
-
 
 	mutex.release()
 
