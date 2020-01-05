@@ -14,6 +14,10 @@ Blind detection - despite a false-negative from the camera sensor, RADAR and LID
 
 <img src="/media/blind.PNG">
 
+## How it Works
+
+TBC...
+
 ## System Diagram
 
 <img src="/media/system_diagram.PNG">
