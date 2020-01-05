@@ -1,3 +1,14 @@
+'''
+fusion.py
+
+Main script. Creates TCP connections with the various sensor and GUI processes,
+
+Each TCP connection is handled by an individual thread. Sensor readings are batched before
+being forwarded to the GUI process.
+
+'''
+
+
 import time
 import zmq
 import subprocess
@@ -27,12 +38,9 @@ lidar_data_mutex = Lock()
 turn = True
 
 #Rotation and Translation Matrices
-
 #Lidar
-#RT_lidar=np.matrix('0 1 0 0;0 0 1 0.05;1 0 0 -0.06')
 RT_lidar=np.matrix('0 1 0 -0.05;0 0 1 -0.05;1 0 0 -0.04')
 #Radar 
-#RT=np.matrix('1 0 0 0.05;0 0 -1 -0.06;0 1 0 -0.05')
 RT=np.matrix('1 0 0 0.05;0 0 -1 -0.05;0 1 0 -0.04')
 
 
@@ -43,12 +51,10 @@ cy=300
 Sx=16/9
 Sy=1
 
-
 #pixel buffer for radar
 radar_pixel=[]
 #pixel buffer for lidar
 lidar_pixel=[]
-
 
 def thread_camera():
 	
@@ -72,7 +78,6 @@ def thread_camera():
 				camera_certainty = float(message_camera[16:20])/10000
 				camera_data.append((px1, py1, px2, py2, camera_certainty))
 				message_camera = message_camera[20:]
-		
 			
 			while (len(camera_data)>=10):
 				del camera_data[0]	
@@ -89,23 +94,16 @@ def thread_radar():
 		socket_radar.send(b"200")
 		
 		radar_data.clear()
-		
-		#calculation of loop params	
+			
 		number_of_obj= (len(message)-1)/15
-		#print("Number of detected Objects:")
-		#print(number_of_obj)
-		#counters	
 		count=0
-		#position on string
 		index=0 
 	
 		while(count<number_of_obj):
 			
-			#print("Entered loop no",count)
 			x = int(message[index:index+4+1])
 			y = int(message[index+5:index+9+1])
 			z = int(message[index+10:index+14+1])
-			#print("Radar xyz=  : ",x," ",y," ",z)
 			#calculating radius for scaling circle radius
 			distance = math.sqrt(math.pow(x,2)+math.pow(y,2)+pow(z,2))
 			index = index+15
@@ -152,9 +150,7 @@ def thread_lidar():
 
 		
 
-#############################################
-########## INITALIZATION ###################
-###########################################
+# INITIALIZATION
 
 #create camera vision socket
 context_camera = zmq.Context()
@@ -170,7 +166,6 @@ socket_radar.bind("tcp://*:" + PORT_RADAR)
 context_lidar = zmq.Context()
 socket_lidar = context_lidar.socket(zmq.REP)
 socket_lidar.bind("tcp://*:"+PORT_LIDAR)
-
 
 print("Initializing Camera Feed...")
 pid_camera = subprocess.Popen(["/home/nvidia/jetson-inference/jetson-inference/build/aarch64/bin//detectnet-camera", "pednet"])
@@ -189,10 +184,7 @@ context_gui = zmq.Context()
 socket_gui = context_gui.socket(zmq.REQ)
 socket_gui.connect("tcp://localhost:" + PORT_GUI)	
 
-#############################################
-########## END INITALIZATION ###################
-###########################################
-
+# END INITIALIZATION
 
 try: 
 	_thread.start_new_thread(thread_camera, ())
@@ -234,7 +226,6 @@ while 1:
 		camera_data_mutex.release()
 		
 		turn = False
-	
-	
+
 	pass
 

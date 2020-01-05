@@ -1,3 +1,12 @@
+'''
+GUI.py
+
+Handles the graphical interface of the program. Displays both the camera visual output 
+and the results of the detection algorithms (Tensorflow, radar, lidar, fusion).
+
+Detection readings are obtained by interacting with the 
+'''
+
 import numpy as np
 import cv2
 import zmq

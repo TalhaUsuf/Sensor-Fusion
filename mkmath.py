@@ -1,6 +1,10 @@
-#Math Repository For Useful Functions
+'''
+mkmath.py
 
-#imports
+Useful math functions required for the projection of 3-Dimensional coordinates onto
+a 2-Dimensional visual display (i.e. your screen)
+
+'''
 import math
 import numpy as np
 

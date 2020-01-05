@@ -35,7 +35,6 @@
 
 #include "detectNet.h"
 
-//#include <zmq.hpp>
 #include <zmq.h>
 
 

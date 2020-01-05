@@ -1,4 +1,10 @@
-#imports
+'''
+lidar.py
+
+Lidar process: Runs the LIDAR sensor and communicates with the fusion.py process.
+
+'''
+
 from rplidar import RPLidar
 import zmq
 import _pickle as pickle
@@ -61,7 +67,7 @@ def mkmeans(scan):
 			
 #socket
 context = zmq.Context()
-print("Lidar Executable: Connecting to Fusion Engine…")
+print("Lidar Process: Connecting to Fusion Engine…")
 socket = context.socket(zmq.REQ)
 print("Connection Status:",socket.connect("tcp://localhost:5556"))
 
